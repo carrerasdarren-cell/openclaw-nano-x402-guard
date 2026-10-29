@@ -16,26 +16,34 @@ Requires Node >=22.19.0 and exactly OpenClaw 2026.5.18. Runtime dependencies are
 pinned; `package-lock.json` records the tested transitive versions. There are no
 install/build lifecycle scripts. The source is runnable JavaScript.
 
-From the repository:
+From the repository at the exact commit named in the claim:
 
 ```sh
 npm ci --ignore-scripts --legacy-peer-deps
+npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps openclaw@2026.5.18
 ```
+
+The second command installs the exact peer framework for the source examples and
+tests. It requires no model credentials and runs no install lifecycle scripts.
 
 An operator who has installed the pinned OpenClaw separately can link this
 reviewed directory using `openclaw plugins install -l /absolute/path/to/this/repo`.
 This changes their OpenClaw configuration; review the code before doing so.
 
-The intended registry name is `openclaw-nano-x402-guard@0.1.0`. **Publication has
-not happened yet.** Once the version is actually public, the registry install is:
+The public registry release is
+[`openclaw-nano-x402-guard@0.1.0`](https://www.npmjs.com/package/openclaw-nano-x402-guard/v/0.1.0),
+published and independently installed with scripts disabled on 2026-10-29. The
+registry install is:
 
 ```sh
 npm install --prefix ./nano-plugin --ignore-scripts --legacy-peer-deps openclaw-nano-x402-guard@0.1.0
 openclaw plugins install -l "$PWD/nano-plugin/node_modules/openclaw-nano-x402-guard"
 ```
 
-Do not treat this intended command as proof of a published package. Final claim
-evidence must include the actual public version and an installation readback.
+The repository examples below were added after that immutable release; use the
+repository commit named in the claim to run them. They do not require a new npm
+release. The published runtime remains 0.1.0; its original README is a historical
+snapshot. Publication and offline validation are not a complete bounty claim.
 
 ## Configure the operator boundary
 
@@ -118,7 +126,93 @@ starting another payment. The guard conservatively retains the reserved budget.
 The manual bridge has synthetic offline validation; **the real Nault UI workflow
 and live purchase have not yet been executed**.
 
-## One call through OpenClaw's agent loop
+## Reviewer example: a real local agent loop without model credentials
+
+The primary reviewer command uses OpenClaw's actual `agent --local` loop and a
+small deterministic **local provider plugin**, registered through the framework's
+public provider hooks. The provider emits one fixed `nano_x402_purchase` tool
+call and then summarizes its result. It has no HTTP/model transport, model
+service, or real model credential. It does not interpret merchant content.
+
+After the repository install above, run this **offline** default:
+
+```sh
+node examples/native-loop.mjs --offline --state-root "$PWD/.nano-example-runs" --openclaw-bin "$PWD/node_modules/.bin/openclaw"
+```
+
+It creates a fresh private HOME/config/state/workspace, loads only the Nano guard
+and fixture provider, and enables only the purchase tool. Existing model keys,
+OpenClaw configuration, shell environment loading and Node preloads are excluded.
+The synthetic auth marker is public fixture data, not a service credential.
+
+The offline request deliberately uses `https://denied.invalid/native-offline`.
+The actual native tool must refuse it before network access or signer loading.
+Expect the final provider summary to contain `toolResultObserved: true`,
+`outcome: "guard-refused-or-failed"`, and `remoteModel: false`, and exactly one
+native tool call in the isolated session transcript. CLI exit 0 alone is not
+proof of tool execution. This real local-loop refusal was executed on the pinned
+OpenClaw version; it is not a paid request or settlement proof.
+
+For the reviewer/operator's **real one-call run**, inject a trusted, unattended
+helper using the same interface documented above:
+
+```sh
+NANO_SIGNER_MODULE=/absolute/path/to/operator-unattended-helper.mjs node examples/native-loop.mjs --live --state-root "$PWD/.nano-example-runs" --openclaw-bin "$PWD/node_modules/.bin/openclaw"
+```
+
+This requests exactly `POST https://pursekeeper.dev/v1/hash` with body `hello`.
+Both the per-call and total exposure caps are **0.001 XNO**. The local provider
+issues at most one tool call, including across recreated stream factories; the
+wrapper spawns one native CLI child and never retries it. The guard still checks
+the quote, exact origin and merchant account, expiry, redirect and replay rules.
+No model credentials or model service are needed in live mode either.
+
+An operator can choose the existing `env-helper.mjs` after privately supplying
+its account key and suitable no-outlay RPC/work services, or inject another
+trusted unattended helper appropriate to the review container. Keys must never
+be placed in a command, repository, screenshot or log. The default live child
+has no interactive stdin; it intentionally cannot prompt a human. Only
+Nano-specific environment values are forwarded, and they are not serialized
+into the temporary OpenClaw configuration. The integration does not configure
+or promise access to a node/work service for the operator.
+
+### Private operator proof with Nault
+
+The reviewer uses the unattended mode above. Separately, Darren's first live
+proof can use the existing manual Nault adapter without exporting a key:
+
+```sh
+NANO_PUBLIC_FRONTIER_FILE=/private/current-public-block.json NANO_SIGNER_MODULE="$PWD/manual-nault-operator.mjs" node examples/native-loop.mjs --live --operator-tty --state-root "$PWD/.nano-example-runs" --openclaw-bin "$PWD/node_modules/.bin/openclaw"
+```
+
+`--operator-tty` is live-only and inherits the private terminal; it does not
+capture the signed response or child output. Prepare the current public frontier
+and Nault as described in the manual-signing section **before** starting. Darren
+personally reviews and signs the unsigned request, then pastes the response into
+the hidden terminal input. Do not broadcast in Nault. Keep this terminal private.
+The actual Nault signing/payment workflow remains user-operated and has not been
+executed by the coding agent. A quote that needs proof of work or expires is a
+refusal, not permission to weaken checks or pay again.
+
+A missing result, failure, timeout or ambiguous response is not permission to
+rerun `--live`: the guard's in-memory ledger does not survive a process restart.
+Check the account/chain and merchant request log first. Confirm the integration's
+own send hash in that log before filing a claim; the incoming 0.05 XNO seed hash
+is not the required purchase hash, an award, or a slot reservation.
+
+### Supplemental positive offline fixture
+
+```sh
+node examples/model-free.mjs --offline
+```
+
+This runs the actual SDK-registered tool, pinned Nano scheme and a public
+synthetic signer against an in-memory merchant. It explicitly reports
+`agentLoop: false`: the small registrar is a test fixture, not the native loop
+above. An offline `paidRequestSent` refers only to its simulated transport, never
+a real transfer. Never fund the public synthetic fixture account.
+
+## Optional example with an existing model-backed agent
 
 After explicitly enabling the optional tool for an existing configured agent,
 the **operator** can ask that agent to make exactly one real purchase:
@@ -180,7 +274,8 @@ With the pinned OpenClaw SDK available as a dependency:
 npm test
 ```
 
-Tests use mocked HTTP/quotes/signers plus actual native OpenClaw SDK registration
+The current repository suite passes **105 offline tests**. Tests use mocked
+HTTP/quotes/signers plus actual native OpenClaw SDK registration
 and tool execution. They also exercise the real pinned Nano scheme and Nano SDK
 signature/amount creation with public synthetic test material, and verify the
 official helper refuses invalid proof of work with mocked RPC. They do not use
@@ -191,3 +286,7 @@ These tests are not a live Gateway/model turn, public registry installation,
 real paid-call evidence, or sponsor acceptance. A complete slot claim still
 needs a published installable package, exact repository commit, actual own-account
 paid block, receiving account, and truthful operator/AI disclosure.
+
+The separate native-loop run above additionally verifies actual local agent/tool
+dispatch without a remote model. It does not establish live signing, a successful
+paid call, sponsor acceptance or a bounty award. The seed receipt is test funding.
