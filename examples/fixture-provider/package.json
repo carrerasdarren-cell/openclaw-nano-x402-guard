@@ -1,0 +1,7 @@
+{
+  "name": "nano-x402-local-fixture-provider",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "openclaw": { "extensions": ["./index.mjs"], "providers": ["nano-fixture"] }
+}
