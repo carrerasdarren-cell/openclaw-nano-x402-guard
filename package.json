@@ -1,0 +1,43 @@
+{
+  "name": "openclaw-nano-x402-guard",
+  "version": "0.1.0",
+  "description": "An opt-in OpenClaw tool for capped, allowlisted Nano x402 exact purchases",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./guard": "./guarded-purchase.mjs",
+    "./client": "./nano-client.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "guarded-purchase.mjs",
+    "nano-client.mjs",
+    "env-helper.mjs",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test --test-concurrency=1 *.test.mjs"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.mjs"
+    ]
+  },
+  "dependencies": {
+    "@x402nano/exact": "0.3.0",
+    "@x402nano/helper": "0.2.0",
+    "typebox": "1.1.38"
+  },
+  "peerDependencies": {
+    "openclaw": "2026.5.18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "nano-x402-guard",
+  "name": "Nano x402 Guard",
+  "description": "An opt-in, capped Nano exact payment tool with an operator-controlled recipient and origin allowlist.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "required": [
+      "allowPayTo",
+      "allowedOrigins",
+      "maxPerCallRaw",
+      "maxTotalRaw",
+      "signerModule"
+    ],
+    "properties": {
+      "allowPayTo": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1
+      },
+      "allowedOrigins": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1
+      },
+      "maxPerCallRaw": {
+        "type": "string",
+        "pattern": "^[1-9][0-9]*$"
+      },
+      "maxTotalRaw": {
+        "type": "string",
+        "pattern": "^[1-9][0-9]*$"
+      },
+      "signerModule": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Absolute path to the operator-owned Nano helper module. Never put a seed or private key here."
+      }
+    },
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "nano_x402_purchase"
+    ]
+  },
+  "toolMetadata": {
+    "nano_x402_purchase": {
+      "optional": true
+    }
+  }
+}
