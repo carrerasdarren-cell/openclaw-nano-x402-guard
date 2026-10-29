@@ -82,6 +82,42 @@ seller permits an optional-work placeholder. Configure a working, no-outlay RPC
 and work service before a live example. No service, wallet, or paid RPC is
 created by this package. Do not point it at an untrusted RPC/work service.
 
+### Manual Nault signing without exporting a wallet key
+
+For a seller's **optional-work** quote, `manual-nault-operator.mjs` provides an
+alternative to the environment-key helper. It uses Nault's documented
+[remote-signing format](https://docs.nault.cc/2020/08/05/security-of-nano.html#transact-using-a-remote-signing-procedure).
+No seed, account private key, or wallet password goes into this package.
+
+The operator supplies a current **public, signed Nano state block** for the
+paying account in a local JSON file. A zero-balance unopened account cannot send.
+After receiving funds in Nault, obtain and verify the public frontier against
+the account's current ledger state. Do not use a stale frontier or another wallet
+writer concurrently. This adapter verifies the previous block's signature, but
+does not query a node or establish that it is the latest frontier.
+
+Set `NANO_PUBLIC_FRONTIER_FILE` to the absolute path of that public block file,
+and configure `signerModule` to the absolute installed path of
+`manual-nault-operator.mjs`. Run the purchase yourself in a private interactive
+terminal. It prints an **unsigned** `nanosign:` request. Import that request into
+Nault remote signing, personally review the sender, exact recipient and amount,
+and sign only if all match. Copy Nault's signed `nanoprocess:` response into the
+terminal's hidden input. **Do not broadcast it in Nault**: the enclosing purchase
+sends the payment-bearing request, and the seller may broadcast its block.
+Do not send the signed response to a coding agent, chat, recording or log.
+
+This adapter checks the returned signature and all five signed financial fields
+against the immutable proposal. It uses one attempt per helper instance,
+including failure; it never broadcasts or retries. It accepts only optional-work
+placeholders, not required-proof-of-work quotes. Nault may omit the unsigned
+`type` and `work` metadata; these are normalized without changing signed fields.
+
+Prepare Nault before starting: the current seller quote expires after 60 seconds.
+A late response is refused without weakening the expiry check or automatically
+starting another payment. The guard conservatively retains the reserved budget.
+The manual bridge has synthetic offline validation; **the real Nault UI workflow
+and live purchase have not yet been executed**.
+
 ## One call through OpenClaw's agent loop
 
 After explicitly enabling the optional tool for an existing configured agent,

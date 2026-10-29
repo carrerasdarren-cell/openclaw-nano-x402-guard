@@ -10,7 +10,8 @@
   "exports": {
     ".": "./index.mjs",
     "./guard": "./guarded-purchase.mjs",
-    "./client": "./nano-client.mjs"
+    "./client": "./nano-client.mjs",
+    "./manual-nault": "./manual-nault-helper.mjs"
   },
   "files": [
     "index.mjs",
@@ -19,7 +20,10 @@
     "env-helper.mjs",
     "openclaw.plugin.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "manual-nault-helper.mjs",
+    "manual-nault-operator.mjs",
+    "manual-nault-tty.mjs"
   ],
   "scripts": {
     "test": "node --test --test-concurrency=1 *.test.mjs"
@@ -32,12 +36,18 @@
   "dependencies": {
     "@x402nano/exact": "0.3.0",
     "@x402nano/helper": "0.2.0",
-    "typebox": "1.1.38"
+    "typebox": "1.1.38",
+    "nano-sdk": "1.0.7"
   },
   "peerDependencies": {
     "openclaw": "2026.5.18"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carrerasdarren-cell/openclaw-nano-x402-guard.git"
+  },
+  "homepage": "https://github.com/carrerasdarren-cell/openclaw-nano-x402-guard#readme"
 }
