@@ -1,0 +1,23 @@
+{
+  "id": "nano-fixture-provider",
+  "name": "Deterministic local Nano fixture provider",
+  "description": "Repository-only no-network provider for one native agent-loop tool call. Not a model service.",
+  "providers": ["nano-fixture"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["request"],
+    "properties": {
+      "request": {
+        "type": "object", "additionalProperties": false,
+        "required": ["requestId", "url", "method"],
+        "properties": {
+          "requestId": {"type":"string","minLength":1,"maxLength":200},
+          "url": {"type":"string","minLength":1},
+          "method": {"type":"string","enum":["GET","POST"]},
+          "body": {"type":"string"}
+        }
+      }
+    }
+  }
+}
